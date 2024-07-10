@@ -25,6 +25,6 @@ crew = Crew(
 
 result = crew.kickoff()
 
-f = open("demo.txt", "a")
+f = open("../out/demo.txt", "a")
 f.write(result)
 f.close()
