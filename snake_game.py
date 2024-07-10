@@ -8,7 +8,7 @@ pygame.init()
 WIDTH = 600
 HEIGHT = 400
 SNAKE_SIZE = 20
-FOOD_SIZE = 10
+FOOD_SIZE = 20
 BLOCK_SIZE = 20
 
 # Set up the display
@@ -23,6 +23,7 @@ class Snake:
     def __init__(self):
         self.body = [(200, 150), (180, 150), (160, 150)]
         self.direction = "Right"
+        self.growing = False
 
     def move(self):
         if self.direction == "Right":
@@ -34,19 +35,18 @@ class Snake:
         elif self.direction == "Down":
             head = (self.body[0][0], self.body[0][1] + SNAKE_SIZE)
 
-        if head in self.body[:-1]:
+        if head in self.body or head[0] < 0 or head[0] >= WIDTH or head[1] < 0 or head[1] >= HEIGHT:
             return False
 
         self.body.insert(0, head)
+        if not self.growing:
+            self.body.pop()
+        else:
+            self.growing = False
+        return True
 
     def eat(self):
-        food = random.choice([(x, y) for x in range(0, WIDTH, BLOCK_SIZE)
-                              for y in range(0, HEIGHT, BLOCK_SIZE)])
-        while food in self.body:
-            food = random.choice([(x, y) for x in range(0, WIDTH, BLOCK_SIZE)
-                                  for y in range(0, HEIGHT, BLOCK_SIZE)])
-
-        self.body.append(food)
+        self.growing = True
 
     def draw(self):
         for pos in self.body:
@@ -56,6 +56,9 @@ class Food:
     def __init__(self):
         self.position = random.choice([(x, y) for x in range(0, WIDTH, BLOCK_SIZE)
                                        for y in range(0, HEIGHT, BLOCK_SIZE)])
+        while self.position in snake.body:
+            self.position = random.choice([(x, y) for x in range(0, WIDTH, BLOCK_SIZE)
+                                           for y in range(0, HEIGHT, BLOCK_SIZE)])
 
     def draw(self):
         pygame.draw.rect(screen, WHITE, (self.position[0], self.position[1], FOOD_SIZE, FOOD_SIZE))
@@ -63,6 +66,7 @@ class Food:
 def main():
     clock = pygame.time.Clock()
 
+    global snake
     snake = Snake()
     food = Food()
 
@@ -82,6 +86,10 @@ def main():
 
         if not snake.move():
             return
+
+        if snake.body[0] == food.position:
+            snake.eat()
+            food = Food()
 
         screen.fill(BLACK)
 
